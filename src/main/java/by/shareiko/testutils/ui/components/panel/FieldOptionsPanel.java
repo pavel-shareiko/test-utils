@@ -157,6 +157,7 @@ public class FieldOptionsPanel extends JBPanel<FieldOptionsPanel> {
         fieldConfiguration.setFieldName(field.getName());
         fieldConfiguration.setDefaultValue(null);
         fieldConfiguration.setAccessModifier(AccessModifier.PRIVATE.toPsiModifier());
+        fieldConfiguration.setPsiField(field);
         return fieldConfiguration;
     }
 

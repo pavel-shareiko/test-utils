@@ -18,12 +18,11 @@ import java.awt.event.MouseEvent;
 import java.util.function.Consumer;
 
 public class SelectableFieldComponent extends JBPanel<SelectableFieldComponent> {
-
     private final JBCheckBox checkBox;
     private final PsiField psiField;
     private final JBLabel fieldLabel;
     private final JBLabel typeLabel;
-    private boolean selected = false;
+    private boolean selected = true;
     private boolean active = false;
 
     public SelectableFieldComponent(PsiField psiField) {
@@ -83,6 +82,7 @@ public class SelectableFieldComponent extends JBPanel<SelectableFieldComponent> 
 
     private @NotNull JBCheckBox createCheckBox() {
         JBCheckBox newCheckBox = new JBCheckBox();
+        newCheckBox.setSelected(selected);
 
         newCheckBox.addActionListener(e -> selected = checkBox.isSelected());
 
@@ -111,11 +111,7 @@ public class SelectableFieldComponent extends JBPanel<SelectableFieldComponent> 
 
         // Check if the type belongs to the java.lang package (standard library type)
         String typeQualifiedName = type.getCanonicalText();
-        if (typeQualifiedName.startsWith("java.lang.")) {
-            return true;
-        }
-
-        return false;
+        return typeQualifiedName.startsWith("java.lang.");
     }
 
     public PsiField getPsiField() {

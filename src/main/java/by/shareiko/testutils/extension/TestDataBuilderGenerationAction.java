@@ -1,12 +1,14 @@
 package by.shareiko.testutils.extension;
 
 import by.shareiko.testutils.properties.TestDataBuilderConfiguration;
+import by.shareiko.testutils.service.BuilderGenerationService;
 import by.shareiko.testutils.ui.dialog.GenerateBuilderDialog;
 import by.shareiko.testutils.utils.PsiUtils;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiClass;
@@ -38,7 +40,9 @@ public class TestDataBuilderGenerationAction extends AnAction {
         }
 
         TestDataBuilderConfiguration builderConfiguration = dialog.getBuilderConfiguration();
-        System.out.println(builderConfiguration);
+        var generationService = ApplicationManager.getApplication().getService(BuilderGenerationService.class);
+
+        generationService.generateBuilder(project, builderConfiguration);
     }
 
     private static GenerateBuilderDialog showBuilderGenerationDialog(Project project, PsiClass selectedClass) {

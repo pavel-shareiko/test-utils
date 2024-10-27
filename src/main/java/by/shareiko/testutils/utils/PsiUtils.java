@@ -1,6 +1,7 @@
 package by.shareiko.testutils.utils;
 
 import com.intellij.java.library.JavaLibraryUtil;
+import com.intellij.lang.jvm.JvmModifier;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
@@ -9,14 +10,13 @@ import com.intellij.openapi.roots.JavaProjectRootsUtil;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.JavaPsiFacade;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
+import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.ProjectScope;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Arrays;
 
 @SuppressWarnings("UnstableApiUsage")
 public class PsiUtils {
@@ -63,5 +63,12 @@ public class PsiUtils {
 
     private static @NotNull GlobalSearchScope getScopeWithoutGeneratedSources(Project project) {
         return JavaProjectRootsUtil.getScopeWithoutGeneratedSources(ProjectScope.getProjectScope(project), project);
+    }
+
+    public static PsiField[] getWritableFields(PsiClass sourceClass) {
+        return Arrays.stream(sourceClass.getFields())
+                .filter(f -> !f.hasModifier(JvmModifier.STATIC))
+                .filter(f -> !f.hasModifier(JvmModifier.FINAL))
+                .toArray(PsiField[]::new);
     }
 }
