@@ -62,7 +62,7 @@ public class GenerateBuilderDialog extends DialogWrapper {
                 "Select Destination Package"
         );
         this.fieldSelectionPanel = new FieldSelectionPanel(sourceClass);
-        this.fieldOptionsPanel = new FieldOptionsPanel(fieldSelectionPanel);
+        this.fieldOptionsPanel = new FieldOptionsPanel(fieldSelectionPanel, project);
 
         // TODO: use RecentsManager for this
         this.builderInterfaceField = new ClassNameReferenceEditor(project, null,
@@ -81,6 +81,7 @@ public class GenerateBuilderDialog extends DialogWrapper {
     @Override
     protected @Nullable JComponent createCenterPanel() {
         JPanel mainPanel = new JPanel(new GridBagLayout());
+        mainPanel.setPreferredSize(new Dimension(800, 600));
         GridBagConstraints gbConstraints = new GridBagConstraints();
         mainPanel.setBorder(IdeBorderFactory.createBorder());
 

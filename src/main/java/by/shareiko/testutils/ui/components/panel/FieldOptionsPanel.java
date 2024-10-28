@@ -2,6 +2,7 @@ package by.shareiko.testutils.ui.components.panel;
 
 import by.shareiko.testutils.ui.UIConstants;
 import by.shareiko.testutils.ui.model.FieldConfiguration;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.LabeledComponent;
 import com.intellij.psi.PsiField;
@@ -19,18 +20,20 @@ import java.util.Map;
 
 public class FieldOptionsPanel extends JBPanel<FieldOptionsPanel> {
     private final FieldSelectionPanel fieldSelectionPanel;
+    private final Project project;
     private final Map<PsiField, FieldConfiguration> fieldsConfiguration;
 
     private PsiField selectedField;
     private FieldConfiguration selectedFieldConfiguration;
 
-    private LabeledComponent<JTextField> nameField = new LabeledComponent<>();
-    private LabeledComponent<JTextField> defaultValueField = new LabeledComponent<>();
-    private LabeledComponent<ComboBox<String>> accessLevelField = new LabeledComponent<>();
+    private LabeledComponent<JTextField> nameField;
+    private LabeledComponent<JTextField> defaultValueField;
+    private LabeledComponent<ComboBox<String>> accessLevelField;
     private boolean reconfigurationInProgress = false;
 
-    public FieldOptionsPanel(FieldSelectionPanel fieldSelectionPanel) {
+    public FieldOptionsPanel(FieldSelectionPanel fieldSelectionPanel, @NotNull Project project) {
         this.fieldSelectionPanel = fieldSelectionPanel;
+        this.project = project;
         this.fieldsConfiguration = new HashMap<>();
 
         setLayout(new GridBagLayout());
@@ -39,86 +42,74 @@ public class FieldOptionsPanel extends JBPanel<FieldOptionsPanel> {
     public void init() {
         initFieldsConfiguration();
 
-        this.nameField.component = new JTextField();
-        this.nameField.component.getDocument().addDocumentListener(new DocumentAdapter() {
+        var nameFieldComponent = new JTextField();
+        nameFieldComponent.getDocument().addDocumentListener(new DocumentAdapter() {
             @Override
             protected void textChanged(@NotNull DocumentEvent e) {
                 if (!reconfigurationInProgress) {
-                    selectedFieldConfiguration.setFieldName(nameField.component.getText());
+                    selectedFieldConfiguration.setFieldName(nameField.getComponent().getText());
                 }
             }
         });
 
-        this.defaultValueField.component = new JTextField();
-        this.defaultValueField.component.getDocument().addDocumentListener(new DocumentAdapter() {
+        var defaultValueFieldComponent = new JTextField();
+        defaultValueFieldComponent.getDocument().addDocumentListener(new DocumentAdapter() {
             @Override
             protected void textChanged(@NotNull DocumentEvent e) {
                 if (!reconfigurationInProgress) {
-                    selectedFieldConfiguration.setDefaultValue(defaultValueField.component.getText());
+                    selectedFieldConfiguration.setDefaultValue(defaultValueField.getComponent().getText());
                 }
             }
         });
 
-        this.accessLevelField.component = new ComboBox<>(
-                new String[]{"public", "protected", "private"}
-        );
-        this.accessLevelField.component.addItemListener(e -> {
+        var accessLevelFieldComponent = new ComboBox<>(new String[]{"public", "protected", "private"});
+        accessLevelFieldComponent.addItemListener(e -> {
             if (e.getStateChange() == ItemEvent.SELECTED && !reconfigurationInProgress) {
                 selectedFieldConfiguration.setAccessModifier(e.getItem().toString());
             }
         });
 
-        nameField = this.addLabeledComponent(nameField.component, "Field Name: ", 0);
-        defaultValueField = this.addLabeledComponent(defaultValueField.component, "Default Value: ", 1);
-        accessLevelField = this.addLabeledComponent(accessLevelField.component, "Field Access Level: ", 2);
+        nameField = this.addLabeledComponent(nameFieldComponent, "Field Name", 0);
+        defaultValueField = this.addLabeledComponent(defaultValueFieldComponent, "Default Value", 1);
+        accessLevelField = this.addLabeledComponent(accessLevelFieldComponent, "Field Access Level", 2);
 
         // filler component
-        addFillerComponent();
+        addFillerComponent(3);
 
         setComponentsVisibility(selectedField != null);
     }
 
-    private void addFillerComponent() {
-        var gbConstraints = getGridBagConstraints(3);
-        gbConstraints.weighty = 1;
-        JPanel filler = new JPanel();
-        filler.setPreferredSize(new Dimension(0, 0));
-        add(filler, gbConstraints);
-    }
-
-    public FieldConfiguration getFieldConfiguration(PsiField selectedField) {
-        return fieldsConfiguration.get(selectedField);
-
-    }
-
-    private <T extends JComponent> LabeledComponent<T> addLabeledComponent(T component,
-                                                                           String labelText,
-                                                                           int gridy) {
-        var gbConstraints = getGridBagConstraints(gridy);
-
-        gbConstraints.anchor = GridBagConstraints.WEST;
-        JLabel label = new JLabel(labelText);
-        super.add(label, gbConstraints);
-
-        gbConstraints.anchor = GridBagConstraints.NORTHWEST;
-        gbConstraints.gridx = 1;
-        gbConstraints.weightx = 1;
-        gbConstraints.fill = GridBagConstraints.HORIZONTAL;
-        super.add(component, gbConstraints);
-
-        return new LabeledComponent<>(label, component);
-    }
-
-    private static @NotNull GridBagConstraints getGridBagConstraints(int gridy) {
+    private void addFillerComponent(int gridy) {
         var gbConstraints = new GridBagConstraints();
         gbConstraints.insets = UIConstants.DEFAULT_INSETS;
         gbConstraints.gridy = gridy;
         gbConstraints.gridx = 0;
         gbConstraints.anchor = GridBagConstraints.NORTHWEST;
         gbConstraints.weightx = 0;
-        gbConstraints.weighty = 0;
         gbConstraints.fill = GridBagConstraints.NONE;
-        return gbConstraints;
+        gbConstraints.weighty = 1;
+        JPanel filler = new JPanel();
+        filler.setPreferredSize(new Dimension(0, 0));
+        super.add(filler, gbConstraints);
+    }
+
+    public FieldConfiguration getFieldConfiguration(PsiField selectedField) {
+        return fieldsConfiguration.get(selectedField);
+    }
+
+    private <T extends JComponent> LabeledComponent<T> addLabeledComponent(T component,
+                                                                           String labelText,
+                                                                           int gridy) {
+        var gbConstraints = new GridBagConstraints();
+        gbConstraints.gridy = gridy;
+        gbConstraints.gridx = 0;
+        gbConstraints.weightx = 1;
+        gbConstraints.fill = GridBagConstraints.HORIZONTAL;
+        gbConstraints.anchor = GridBagConstraints.WEST;
+
+        LabeledComponent<T> labeledComponent = LabeledComponent.create(component, labelText, BorderLayout.WEST);
+        super.add(labeledComponent, gbConstraints);
+        return labeledComponent;
     }
 
     private void initFieldsConfiguration() {
@@ -139,9 +130,9 @@ public class FieldOptionsPanel extends JBPanel<FieldOptionsPanel> {
     }
 
     private void redrawConfigurationForField(FieldConfiguration config) {
-        this.nameField.component.setText(config.getFieldName());
-        this.defaultValueField.component.setText(config.getDefaultValue());
-        this.accessLevelField.component.setSelectedItem(config.getAccessModifier());
+        this.nameField.getComponent().setText(config.getFieldName());
+        this.defaultValueField.getComponent().setText(config.getDefaultValue());
+        this.accessLevelField.getComponent().setSelectedItem(config.getAccessModifier());
 
         setComponentsVisibility(selectedField != null);
     }
@@ -159,26 +150,6 @@ public class FieldOptionsPanel extends JBPanel<FieldOptionsPanel> {
         fieldConfiguration.setAccessModifier(AccessModifier.PRIVATE.toPsiModifier());
         fieldConfiguration.setPsiField(field);
         return fieldConfiguration;
-    }
-
-    private static class LabeledComponent<T extends JComponent> {
-        JLabel label;
-        T component;
-
-        public LabeledComponent(JLabel label, T component) {
-            this.label = label;
-            this.component = component;
-        }
-
-        public LabeledComponent() {
-        }
-
-        public void setVisible(boolean isVisible) {
-            if (this.label != null)
-                this.label.setVisible(isVisible);
-            if (this.component != null)
-                this.component.setVisible(isVisible);
-        }
     }
 }
 
