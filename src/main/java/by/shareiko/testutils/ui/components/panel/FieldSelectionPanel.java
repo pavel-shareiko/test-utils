@@ -28,7 +28,7 @@ public class FieldSelectionPanel extends JBPanel<FieldSelectionPanel> {
 
     public void init() {
         createFieldComponents();
-        registerSelectionListener();
+        registerDefaultSelectionListener();
     }
 
     private void createFieldComponents() {
@@ -58,7 +58,7 @@ public class FieldSelectionPanel extends JBPanel<FieldSelectionPanel> {
         add(filler, gbConstraints);
     }
 
-    private void registerSelectionListener() {
+    private void registerDefaultSelectionListener() {
         addSelectionListener(f -> {
             if (activeField != null && !activeField.equals(f)) {
                 fieldList.get(activeField).deselect();

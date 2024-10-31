@@ -2,12 +2,15 @@ package by.shareiko.testutils.ui.components.panel;
 
 import by.shareiko.testutils.ui.UIConstants;
 import by.shareiko.testutils.ui.model.FieldConfiguration;
+import by.shareiko.testutils.utils.EditorTextFieldFactory;
+import com.intellij.openapi.editor.event.DocumentListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.LabeledComponent;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.util.AccessModifier;
 import com.intellij.ui.DocumentAdapter;
+import com.intellij.ui.EditorTextField;
 import com.intellij.ui.components.JBPanel;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,7 +30,7 @@ public class FieldOptionsPanel extends JBPanel<FieldOptionsPanel> {
     private FieldConfiguration selectedFieldConfiguration;
 
     private LabeledComponent<JTextField> nameField;
-    private LabeledComponent<JTextField> defaultValueField;
+    private LabeledComponent<EditorTextField> defaultValueField;
     private LabeledComponent<ComboBox<String>> accessLevelField;
     private boolean reconfigurationInProgress = false;
     private boolean initialized = false;
@@ -45,32 +48,9 @@ public class FieldOptionsPanel extends JBPanel<FieldOptionsPanel> {
     }
 
     private void initComponents() {
-        var nameFieldComponent = new JTextField();
-        nameFieldComponent.getDocument().addDocumentListener(new DocumentAdapter() {
-            @Override
-            protected void textChanged(@NotNull DocumentEvent e) {
-                if (!reconfigurationInProgress) {
-                    selectedFieldConfiguration.setFieldName(nameField.getComponent().getText());
-                }
-            }
-        });
-
-        var defaultValueFieldComponent = new JTextField();
-        defaultValueFieldComponent.getDocument().addDocumentListener(new DocumentAdapter() {
-            @Override
-            protected void textChanged(@NotNull DocumentEvent e) {
-                if (!reconfigurationInProgress) {
-                    selectedFieldConfiguration.setDefaultValue(defaultValueField.getComponent().getText());
-                }
-            }
-        });
-
-        var accessLevelFieldComponent = new ComboBox<>(new String[]{"public", "protected", "private"});
-        accessLevelFieldComponent.addItemListener(e -> {
-            if (e.getStateChange() == ItemEvent.SELECTED && !reconfigurationInProgress) {
-                selectedFieldConfiguration.setAccessModifier(e.getItem().toString());
-            }
-        });
+        var nameFieldComponent = createNameFieldComponent();
+        var defaultValueFieldComponent = createDefaultValueEditor();
+        var accessLevelFieldComponent = createAccessLevelComponent();
 
         nameField = this.addLabeledComponent(nameFieldComponent, "Field Name", 0);
         defaultValueField = this.addLabeledComponent(defaultValueFieldComponent, "Default Value", 1);
@@ -81,6 +61,44 @@ public class FieldOptionsPanel extends JBPanel<FieldOptionsPanel> {
 
         setComponentsVisibility(selectedField != null);
         initialized = true;
+    }
+
+    private @NotNull JTextField createNameFieldComponent() {
+        var nameFieldComponent = new JTextField();
+        nameFieldComponent.getDocument().addDocumentListener(new DocumentAdapter() {
+            @Override
+            protected void textChanged(@NotNull DocumentEvent e) {
+                if (!reconfigurationInProgress) {
+                    selectedFieldConfiguration.setFieldName(nameField.getComponent().getText());
+                }
+            }
+        });
+        return nameFieldComponent;
+    }
+
+    private EditorTextField createDefaultValueEditor() {
+        var textField = EditorTextFieldFactory.createTextField(project, selectedFieldConfiguration.getDefaultValue());
+
+        textField.addDocumentListener(new DocumentListener() {
+            @Override
+            public void documentChanged(com.intellij.openapi.editor.event.@NotNull DocumentEvent event) {
+                if (!reconfigurationInProgress) {
+                    selectedFieldConfiguration.setDefaultValue(defaultValueField.getComponent().getText());
+                }
+            }
+        });
+
+        return textField;
+    }
+
+    private @NotNull ComboBox<String> createAccessLevelComponent() {
+        var accessLevelFieldComponent = new ComboBox<>(new String[]{"public", "protected", "private"});
+        accessLevelFieldComponent.addItemListener(e -> {
+            if (e.getStateChange() == ItemEvent.SELECTED && !reconfigurationInProgress) {
+                selectedFieldConfiguration.setAccessModifier(e.getItem().toString());
+            }
+        });
+        return accessLevelFieldComponent;
     }
 
     private void addFillerComponent(int gridy) {
@@ -125,13 +143,13 @@ public class FieldOptionsPanel extends JBPanel<FieldOptionsPanel> {
     }
 
     private void onFieldSelected(PsiField selectedItem) {
+        this.selectedField = selectedItem;
+        this.selectedFieldConfiguration = this.fieldsConfiguration.get(this.selectedField);
+
         if (isFirstInitialization()) {
             initComponents();
             setComponentsVisibility(true);
         }
-
-        this.selectedField = selectedItem;
-        this.selectedFieldConfiguration = this.fieldsConfiguration.get(this.selectedField);
 
         this.reconfigurationInProgress = true;
         redrawConfigurationForField(selectedFieldConfiguration);
