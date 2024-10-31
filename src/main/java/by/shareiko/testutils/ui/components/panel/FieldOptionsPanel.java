@@ -30,6 +30,7 @@ public class FieldOptionsPanel extends JBPanel<FieldOptionsPanel> {
     private LabeledComponent<JTextField> defaultValueField;
     private LabeledComponent<ComboBox<String>> accessLevelField;
     private boolean reconfigurationInProgress = false;
+    private boolean initialized = false;
 
     public FieldOptionsPanel(FieldSelectionPanel fieldSelectionPanel, @NotNull Project project) {
         this.fieldSelectionPanel = fieldSelectionPanel;
@@ -41,7 +42,9 @@ public class FieldOptionsPanel extends JBPanel<FieldOptionsPanel> {
 
     public void init() {
         initFieldsConfiguration();
+    }
 
+    private void initComponents() {
         var nameFieldComponent = new JTextField();
         nameFieldComponent.getDocument().addDocumentListener(new DocumentAdapter() {
             @Override
@@ -77,6 +80,7 @@ public class FieldOptionsPanel extends JBPanel<FieldOptionsPanel> {
         addFillerComponent(3);
 
         setComponentsVisibility(selectedField != null);
+        initialized = true;
     }
 
     private void addFillerComponent(int gridy) {
@@ -117,30 +121,39 @@ public class FieldOptionsPanel extends JBPanel<FieldOptionsPanel> {
             this.fieldsConfiguration.put(psiField, getDefaultFieldConfiguration(psiField));
         }
 
-        fieldSelectionPanel.addSelectionListener((selectedItem) -> {
-            this.setVisible(selectedItem != null);
+        fieldSelectionPanel.addSelectionListener(this::onFieldSelected);
+    }
 
-            this.selectedField = selectedItem;
-            this.selectedFieldConfiguration = this.fieldsConfiguration.get(this.selectedField);
+    private void onFieldSelected(PsiField selectedItem) {
+        if (isFirstInitialization()) {
+            initComponents();
+            setComponentsVisibility(true);
+        }
 
-            this.reconfigurationInProgress = true;
-            redrawConfigurationForField(selectedFieldConfiguration);
-            this.reconfigurationInProgress = false;
-        });
+        this.selectedField = selectedItem;
+        this.selectedFieldConfiguration = this.fieldsConfiguration.get(this.selectedField);
+
+        this.reconfigurationInProgress = true;
+        redrawConfigurationForField(selectedFieldConfiguration);
+        this.reconfigurationInProgress = false;
+    }
+
+    private boolean isFirstInitialization() {
+        return !initialized;
     }
 
     private void redrawConfigurationForField(FieldConfiguration config) {
         this.nameField.getComponent().setText(config.getFieldName());
         this.defaultValueField.getComponent().setText(config.getDefaultValue());
         this.accessLevelField.getComponent().setSelectedItem(config.getAccessModifier());
-
-        setComponentsVisibility(selectedField != null);
     }
 
     private void setComponentsVisibility(boolean isVisible) {
         this.nameField.setVisible(isVisible);
         this.defaultValueField.setVisible(isVisible);
         this.accessLevelField.setVisible(isVisible);
+
+        setVisible(isVisible);
     }
 
     private static @NotNull FieldConfiguration getDefaultFieldConfiguration(PsiField field) {
