@@ -2,7 +2,7 @@ package by.shareiko.testutils.ui.components.panel;
 
 import by.shareiko.testutils.ui.UIConstants;
 import by.shareiko.testutils.ui.model.FieldConfiguration;
-import by.shareiko.testutils.utils.EditorTextFieldFactory;
+import by.shareiko.testutils.ui.EditorTextFieldFactory;
 import com.intellij.openapi.editor.event.DocumentListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;

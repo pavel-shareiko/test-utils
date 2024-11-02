@@ -18,6 +18,13 @@ public class TestDataBuilderConfiguration {
         return TestDataBuilderConfigurationBuilder.aTestDataBuilderConfiguration();
     }
 
+    public FieldConfiguration getConfigurationForPsiField(String fieldName) {
+        return selectedFields.stream()
+                .filter(f -> f.getPsiField().getName().equals(fieldName))
+                .findFirst()
+                .orElse(null);
+    }
+
     public String getBuilderName() {
         return builderName;
     }

@@ -1,7 +1,7 @@
 package by.shareiko.testutils.ui.components.panel;
 
 import by.shareiko.testutils.ui.components.SelectableFieldComponent;
-import by.shareiko.testutils.utils.PsiUtils;
+import by.shareiko.testutils.utils.PsiFieldUtils;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiField;
 import com.intellij.ui.components.JBPanel;
@@ -20,7 +20,7 @@ public class FieldSelectionPanel extends JBPanel<FieldSelectionPanel> {
     private PsiField activeField;
 
     public FieldSelectionPanel(PsiClass sourceClass) {
-        psiFields = PsiUtils.getWritableFields(sourceClass);
+        psiFields = PsiFieldUtils.getWritableFields(sourceClass);
         fieldList = new LinkedHashMap<>();
 
         setLayout(new GridBagLayout());

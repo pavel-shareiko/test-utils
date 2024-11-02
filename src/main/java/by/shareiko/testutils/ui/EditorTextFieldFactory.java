@@ -1,4 +1,4 @@
-package by.shareiko.testutils.utils;
+package by.shareiko.testutils.ui;
 
 import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.openapi.editor.Document;

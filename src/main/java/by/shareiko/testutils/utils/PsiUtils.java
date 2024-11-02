@@ -1,24 +1,13 @@
 package by.shareiko.testutils.utils;
 
-import com.intellij.java.library.JavaLibraryUtil;
-import com.intellij.lang.jvm.JvmModifier;
 import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.JavaProjectRootsUtil;
-import com.intellij.openapi.roots.ProjectFileIndex;
-import com.intellij.openapi.roots.ProjectRootManager;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.ProjectScope;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
-
-@SuppressWarnings("UnstableApiUsage")
 public class PsiUtils {
     public static PsiClass getSelectedClass(PsiFile file, Editor editor) {
         int offset = editor.getCaretModel().getOffset();
@@ -39,24 +28,6 @@ public class PsiUtils {
         return psiClass.getQualifiedName().substring(0, psiClass.getQualifiedName().lastIndexOf('.'));
     }
 
-    public static boolean isTestsSourceRoot(Project project, VirtualFile file) {
-        ProjectFileIndex fileIndex = ProjectRootManager.getInstance(project).getFileIndex();
-
-        return fileIndex.isInTestSourceContent(file);
-    }
-
-    public static @Nullable Module getFileModule(Project project, VirtualFile file) {
-        return ModuleUtil.findModuleForFile(file, project);
-    }
-
-    public static boolean isLombokEnabled(@Nullable Module module) {
-        return hasLibrary(module, "org.projectlombok:lombok");
-    }
-
-    private static boolean hasLibrary(@Nullable Module module, String library) {
-        return JavaLibraryUtil.hasLibraryJar(module, library);
-    }
-
     public static PsiClass getClassFromProject(String fqn, Project project) {
         return JavaPsiFacade.getInstance(project).findClass(fqn, getScopeWithoutGeneratedSources(project));
     }
@@ -65,10 +36,4 @@ public class PsiUtils {
         return JavaProjectRootsUtil.getScopeWithoutGeneratedSources(ProjectScope.getProjectScope(project), project);
     }
 
-    public static PsiField[] getWritableFields(PsiClass sourceClass) {
-        return Arrays.stream(sourceClass.getFields())
-                .filter(f -> !f.hasModifier(JvmModifier.STATIC))
-                .filter(f -> !f.hasModifier(JvmModifier.FINAL))
-                .toArray(PsiField[]::new);
-    }
 }

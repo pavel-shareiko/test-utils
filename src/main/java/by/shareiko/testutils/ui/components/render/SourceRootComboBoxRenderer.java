@@ -1,6 +1,7 @@
 package by.shareiko.testutils.ui.components.render;
 
-import by.shareiko.testutils.utils.PsiUtils;
+import by.shareiko.testutils.utils.PsiModuleUtils;
+import by.shareiko.testutils.utils.PsiVirtualFileUtils;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.IconLoader;
@@ -23,7 +24,7 @@ public class SourceRootComboBoxRenderer extends ColoredListCellRenderer<VirtualF
     @Override
     protected void customizeCellRenderer(JList<? extends VirtualFile> list, VirtualFile file, int index, boolean selected, boolean hasFocus) {
         if (file != null) {
-            Module module = PsiUtils.getFileModule(project, file);
+            Module module = PsiModuleUtils.getFileModule(project, file);
             String moduleName = module == null ? "unknown" : module.getName();
 
             Color fgColor = selected ? UIUtil.getListSelectionForeground(true) : UIUtil.getListForeground();
@@ -32,7 +33,7 @@ public class SourceRootComboBoxRenderer extends ColoredListCellRenderer<VirtualF
             append("[" + moduleName + "] ", SimpleTextAttributes.REGULAR_ATTRIBUTES);
             append(getRelativePath(file), SimpleTextAttributes.GRAYED_ATTRIBUTES);
 
-            if (PsiUtils.isTestsSourceRoot(project, file)) {
+            if (PsiVirtualFileUtils.isTestsSourceRoot(project, file)) {
                 setIcon(IconLoader.getIcon("/modules/testRoot.svg", getClass()));
             } else {
                 setIcon(IconLoader.getIcon("/modules/sourceRoot.svg", getClass()));
