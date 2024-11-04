@@ -13,6 +13,7 @@ public class TestDataBuilderConfiguration {
     private PsiClass baseInterface;
     private List<FieldConfiguration> selectedFields;
     private VirtualFile sourceRoot;
+    private List<ClassDecorator> decorators;
 
     public static TestDataBuilderConfigurationBuilder builder() {
         return TestDataBuilderConfigurationBuilder.aTestDataBuilderConfiguration();
@@ -73,6 +74,14 @@ public class TestDataBuilderConfiguration {
         this.sourceClass = sourceClass;
     }
 
+    public List<ClassDecorator> getDecorators() {
+        return decorators;
+    }
+
+    public void setDecorators(List<ClassDecorator> decorators) {
+        this.decorators = decorators;
+    }
+
     @Override
     public String toString() {
         return "TestDataBuilderConfiguration{" +
@@ -82,6 +91,7 @@ public class TestDataBuilderConfiguration {
                 ", baseInterface=" + baseInterface +
                 ", selectedFields=" + selectedFields +
                 ", sourceRoot=" + sourceRoot +
+                ", decorators=" + decorators +
                 '}';
     }
 }

@@ -22,8 +22,8 @@ public final class BuilderGenerationService {
     public static final String ACTION_GROUP_ID = "TDBGeneration";
 
     public void generateBuilder(Project project, TestDataBuilderConfiguration config) {
+        // todo: search for dir
         PsiClass existingBuilderClass = findExistingBuilderClass(project, config);
-
         if (existingBuilderClass != null && existingBuilderClass.getContainingFile() != null) {
             int choice = Messages.showYesNoDialog(
                     project,

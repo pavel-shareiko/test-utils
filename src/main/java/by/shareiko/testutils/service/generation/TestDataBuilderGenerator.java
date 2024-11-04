@@ -32,11 +32,16 @@ public class TestDataBuilderGenerator {
 
         addFields(builderClass);
         addBuildMethodImplementation(builderClass);
+        decorateClass(builderClass);
 
         tryResolveMissingImports(builderClass);
 
         beautifyCode(builderClass);
         return builderClass;
+    }
+
+    private void decorateClass(PsiClass builderClass) {
+        config.getDecorators().forEach(d -> d.decorate(builderClass));
     }
 
     private void beautifyCode(PsiClass builderClass) {

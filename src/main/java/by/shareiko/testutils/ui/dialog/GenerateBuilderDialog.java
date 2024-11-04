@@ -1,13 +1,14 @@
 package by.shareiko.testutils.ui.dialog;
 
 import by.shareiko.testutils.properties.TestDataBuilderConfiguration;
-import by.shareiko.testutils.ui.UIConstants;
 import by.shareiko.testutils.ui.components.panel.FieldOptionsPanel;
 import by.shareiko.testutils.ui.components.panel.FieldSelectionPanel;
+import by.shareiko.testutils.ui.components.panel.LombokDecoratorsPanel;
 import by.shareiko.testutils.ui.components.selector.SourceRootSelector;
 import by.shareiko.testutils.ui.components.validator.BuilderInterfaceValidator;
 import by.shareiko.testutils.ui.components.validator.ClassNameValidator;
 import by.shareiko.testutils.ui.model.FieldConfiguration;
+import by.shareiko.testutils.utils.PsiModuleUtils;
 import by.shareiko.testutils.utils.PsiUtils;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.JavaProjectRootsUtil;
@@ -21,6 +22,8 @@ import com.intellij.refactoring.ui.ClassNameReferenceEditor;
 import com.intellij.refactoring.ui.PackageNameReferenceEditorCombo;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.JBSplitter;
+import com.intellij.ui.TitledSeparator;
+import com.intellij.util.ui.JBInsets;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,6 +39,8 @@ import java.util.stream.Stream;
 public class GenerateBuilderDialog extends DialogWrapper {
     public static final String DEFAULT_BUILDER_SUFFIX = "TestDataBuilder";
     public static final String DEFAULT_DIALOG_TITLE = "Generate Builder";
+    public static final JBInsets SEPARATOR_INSETS = JBUI.insets(4, 8);
+    public static final JBInsets SECTION_INSETS = JBUI.insets(4, 16);
 
     private static final String RECENTS_KEY = "CreateTestDataBuilderDialog.RecentsKey";
     private static final String SPLITTER_PROPORTION_KEY = "CreateTestDataBuilderDialog.SplitterProportion";
@@ -48,6 +53,7 @@ public class GenerateBuilderDialog extends DialogWrapper {
     private final ClassNameReferenceEditor builderInterfaceField;
     private final FieldSelectionPanel fieldSelectionPanel;
     private final FieldOptionsPanel fieldOptionsPanel;
+    private final LombokDecoratorsPanel lombokDecoratorsPanel;
 
     public GenerateBuilderDialog(@NotNull Project project, PsiClass sourceClass) {
         super(project);
@@ -63,6 +69,7 @@ public class GenerateBuilderDialog extends DialogWrapper {
         );
         this.fieldSelectionPanel = new FieldSelectionPanel(sourceClass);
         this.fieldOptionsPanel = new FieldOptionsPanel(fieldSelectionPanel, project);
+        this.lombokDecoratorsPanel = new LombokDecoratorsPanel(sourceClass);
 
         // TODO: use RecentsManager for this
         this.builderInterfaceField = new ClassNameReferenceEditor(project, null,
@@ -82,64 +89,80 @@ public class GenerateBuilderDialog extends DialogWrapper {
     protected @Nullable JComponent createCenterPanel() {
         JPanel mainPanel = new JPanel(new GridBagLayout());
         mainPanel.setPreferredSize(new Dimension(800, 600));
-        GridBagConstraints gbConstraints = new GridBagConstraints();
+        GridBagConstraints gbc = new GridBagConstraints();
         mainPanel.setBorder(IdeBorderFactory.createBorder());
 
         /* Builder name */
-        gbConstraints.insets = UIConstants.DEFAULT_INSETS;
-        gbConstraints.gridx = 0;
-        gbConstraints.gridy = 0;
-        gbConstraints.weightx = 0;
-        gbConstraints.gridwidth = 1;
-        gbConstraints.fill = GridBagConstraints.HORIZONTAL;
-        gbConstraints.anchor = GridBagConstraints.WEST;
-        mainPanel.add(new JLabel("Builder name"), gbConstraints);
+        gbc.insets = SECTION_INSETS;
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 0;
+        gbc.gridwidth = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.anchor = GridBagConstraints.WEST;
+        mainPanel.add(new JLabel("Builder name"), gbc);
 
-        gbConstraints.gridx = 1;
-        gbConstraints.weightx = 1;
-        gbConstraints.gridwidth = 1;
-        gbConstraints.fill = GridBagConstraints.HORIZONTAL;
-        gbConstraints.anchor = GridBagConstraints.WEST;
-        mainPanel.add(targetClassNameField, gbConstraints);
+        gbc.gridx = 1;
+        gbc.weightx = 1;
+        gbc.gridwidth = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.anchor = GridBagConstraints.WEST;
+        mainPanel.add(targetClassNameField, gbc);
         /* Builder name */
 
         /* Destination package */
-        gbConstraints.gridx = 0;
-        gbConstraints.gridy = 1;
-        gbConstraints.weightx = 0;
-        gbConstraints.gridwidth = 1;
-        mainPanel.add(new JLabel("Destination package"), gbConstraints);
+        gbc.gridx = 0;
+        gbc.gridy++;
+        gbc.weightx = 0;
+        gbc.gridwidth = 1;
+        mainPanel.add(new JLabel("Destination package"), gbc);
 
-        gbConstraints.gridx = 1;
-        gbConstraints.weightx = 1;
-        mainPanel.add(packageNameField, gbConstraints);
+        gbc.gridx = 1;
+        gbc.weightx = 1;
+        mainPanel.add(packageNameField, gbc);
         /* Destination package */
 
         /* Test Source Root */
-        gbConstraints.gridx = 0;
-        gbConstraints.gridy = 2;
-        mainPanel.add(new JLabel("Test Source Root"), gbConstraints);
+        gbc.gridx = 0;
+        gbc.gridy++;
+        mainPanel.add(new JLabel("Test Source Root"), gbc);
 
-        gbConstraints.gridx = 1;
-        mainPanel.add(sourceRootSelector, gbConstraints);
+        gbc.gridx = 1;
+        mainPanel.add(sourceRootSelector, gbc);
         /* Test Source Root */
 
         /* Builder Interface */
-        gbConstraints.gridx = 0;
-        gbConstraints.gridy = 3;
-        mainPanel.add(new JLabel("Test Data Builder Interface"), gbConstraints);
+        gbc.gridx = 0;
+        gbc.gridy++;
+        mainPanel.add(new JLabel("Test Data Builder Interface"), gbc);
 
-        gbConstraints.gridx = 1;
-        mainPanel.add(builderInterfaceField, gbConstraints);
+        gbc.gridx = 1;
+        mainPanel.add(builderInterfaceField, gbc);
         /* Builder interface */
 
+        /* Decorators */
+        if (PsiModuleUtils.isLombokEnabled(PsiModuleUtils.getFileModule(sourceClass))) {
+            gbc.insets = SEPARATOR_INSETS;
+            gbc.gridy++;
+            gbc.gridx = 0;
+            gbc.gridwidth = 2;
+            mainPanel.add(new TitledSeparator("Lombok Decorators", lombokDecoratorsPanel), gbc);
+
+            gbc.insets = SECTION_INSETS;
+            gbc.gridy++;
+            gbc.anchor = GridBagConstraints.WEST;
+            gbc.fill = GridBagConstraints.HORIZONTAL;
+            mainPanel.add(lombokDecoratorsPanel, gbc);
+        }
+        /* Decorators */
+
         /* Fields selection */
-        gbConstraints.gridy = 4;
-        gbConstraints.gridx = 0;
-        gbConstraints.fill = GridBagConstraints.BOTH;
-        gbConstraints.weighty = 1;
-        gbConstraints.gridwidth = GridBagConstraints.REMAINDER;
-        gbConstraints.gridheight = GridBagConstraints.REMAINDER;
+        gbc.gridy++;
+        gbc.gridx = 0;
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.weighty = 1;
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+        gbc.gridheight = GridBagConstraints.REMAINDER;
 
         JBSplitter splitter = new JBSplitter(false, SPLITTER_PROPORTION_KEY, 0.5f);
 
@@ -152,7 +175,7 @@ public class GenerateBuilderDialog extends DialogWrapper {
         splitter.setBorder(JBUI.Borders.empty());
         fieldSelectionPanel.setBorder(IdeBorderFactory.createBorder());
 
-        mainPanel.add(splitter, gbConstraints);
+        mainPanel.add(splitter, gbc);
         /* Fields selection */
 
         addValidation();
@@ -199,6 +222,9 @@ public class GenerateBuilderDialog extends DialogWrapper {
                 .withSourceRoot((VirtualFile) sourceRootSelector.getSelectedItem())
                 .withBaseInterface(PsiUtils.getClassFromProject(builderInterfaceField.getText(), project))
                 .withSelectedFields(getSelectedFieldsConfiguration())
+                .withDecorators(PsiModuleUtils.isLombokEnabled(PsiModuleUtils.getFileModule(sourceClass))
+                        ? lombokDecoratorsPanel.getDecorators()
+                        : new ArrayList<>())
                 .build();
     }
 
