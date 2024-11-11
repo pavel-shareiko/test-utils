@@ -9,11 +9,7 @@ import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.JavaPsiFacade;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiDirectory;
-import com.intellij.psi.PsiManager;
-import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.*;
 import org.jetbrains.annotations.Nullable;
 
 @Service
@@ -22,20 +18,19 @@ public final class BuilderGenerationService {
     public static final String ACTION_GROUP_ID = "TDBGeneration";
 
     public void generateBuilder(Project project, TestDataBuilderConfiguration config) {
-        // todo: search for dir
-        PsiClass existingBuilderClass = findExistingBuilderClass(project, config);
-        if (existingBuilderClass != null && existingBuilderClass.getContainingFile() != null) {
+        PsiFile existingFile = findExistingBuilderFile(project, config);
+        if (existingFile != null) {
             int choice = Messages.showYesNoDialog(
                     project,
-                    "Class " + config.getBuilderName() + " already exists. Overwrite it?",
-                    "Class Already Exists",
+                    "Class file " + config.getBuilderName() + " already exists. Overwrite it?",
+                    "File Already Exists",
                     "Delete and Regenerate",
                     "Cancel",
                     Messages.getQuestionIcon()
             );
 
             if (choice == Messages.YES) {
-                deleteClassFile(project, existingBuilderClass);
+                deleteFile(project, existingFile);
             } else {
                 return;
             }
@@ -49,17 +44,16 @@ public final class BuilderGenerationService {
         );
     }
 
-    private static void deleteClassFile(Project project, PsiClass classFile) {
+    private static void deleteFile(Project project, PsiFile classFile) {
         WriteCommandAction.runWriteCommandAction(
                 project,
                 "DeleteOldImplementation",
                 ACTION_GROUP_ID,
-                () -> classFile.getContainingFile().delete()
+                classFile::delete
         );
     }
 
     private void doGenerateBuilder(Project project, TestDataBuilderConfiguration config) {
-        // Ensure the source root and package directory are available
         PsiDirectory sourceRootDir = PsiManager.getInstance(project).findDirectory(config.getSourceRoot());
         if (sourceRootDir == null) {
             throw new IllegalArgumentException("Source root directory not found.");
@@ -67,19 +61,25 @@ public final class BuilderGenerationService {
 
         PsiDirectory targetDir = createOrFindPackageDirectory(sourceRootDir, config.getDestinationPackage());
 
-        // Create the class file with builder implementation
         TestDataBuilderGenerator generator = new TestDataBuilderGenerator(project, targetDir, config);
         PsiClass builderClass = generator.generate();
 
-        // Open the generated class in the editor
         navigateToClass(project, builderClass);
     }
 
-    private static @Nullable PsiClass findExistingBuilderClass(Project project, TestDataBuilderConfiguration config) {
-        return JavaPsiFacade.getInstance(project).findClass(
-                config.getDestinationPackage() + "." + config.getBuilderName(),
-                GlobalSearchScope.projectScope(project)
-        );
+    private static @Nullable PsiFile findExistingBuilderFile(Project project, TestDataBuilderConfiguration config) {
+        PsiDirectory sourceRootDir = PsiManager.getInstance(project).findDirectory(config.getSourceRoot());
+        if (sourceRootDir == null) {
+            return null;
+        }
+
+        PsiDirectory targetDir = createOrFindPackageDirectory(sourceRootDir, config.getDestinationPackage());
+        if (targetDir == null) {
+            return null;
+        }
+
+        String expectedFileName = config.getBuilderName() + ".java";
+        return targetDir.findFile(expectedFileName);
     }
 
     private static PsiDirectory createOrFindPackageDirectory(PsiDirectory sourceRootDir, String destinationPackage) {
