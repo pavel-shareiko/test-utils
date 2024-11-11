@@ -9,7 +9,10 @@ import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiDirectory;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
 import org.jetbrains.annotations.Nullable;
 
 @Service
@@ -59,7 +62,7 @@ public final class BuilderGenerationService {
             throw new IllegalArgumentException("Source root directory not found.");
         }
 
-        PsiDirectory targetDir = createOrFindPackageDirectory(sourceRootDir, config.getDestinationPackage());
+        PsiDirectory targetDir = createOrFindPackageDirectory(sourceRootDir, config.getDestinationPackage(), true);
 
         TestDataBuilderGenerator generator = new TestDataBuilderGenerator(project, targetDir, config);
         PsiClass builderClass = generator.generate();
@@ -73,22 +76,28 @@ public final class BuilderGenerationService {
             return null;
         }
 
-        PsiDirectory targetDir = createOrFindPackageDirectory(sourceRootDir, config.getDestinationPackage());
+        PsiDirectory targetDir = createOrFindPackageDirectory(sourceRootDir, config.getDestinationPackage(), false);
         if (targetDir == null) {
             return null;
         }
-
         String expectedFileName = config.getBuilderName() + ".java";
         return targetDir.findFile(expectedFileName);
     }
 
-    private static PsiDirectory createOrFindPackageDirectory(PsiDirectory sourceRootDir, String destinationPackage) {
+    private static PsiDirectory createOrFindPackageDirectory(
+            PsiDirectory sourceRootDir,
+            String destinationPackage,
+            boolean createSubdirectories
+    ) {
         String[] packagePath = destinationPackage.split("\\.");
         PsiDirectory currentDir = sourceRootDir;
 
         for (String packagePart : packagePath) {
             PsiDirectory subDir = currentDir.findSubdirectory(packagePart);
             if (subDir == null) {
+                if (!createSubdirectories) {
+                    return null;
+                }
                 subDir = currentDir.createSubdirectory(packagePart);
             }
             currentDir = subDir;
