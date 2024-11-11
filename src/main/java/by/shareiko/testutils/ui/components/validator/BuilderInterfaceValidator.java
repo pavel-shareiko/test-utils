@@ -1,13 +1,14 @@
 package by.shareiko.testutils.ui.components.validator;
 
+import by.shareiko.testutils.ui.components.ClassNameReferenceEditor;
+import by.shareiko.testutils.utils.PsiBuilderFinder;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ValidationInfo;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiManager;
 import com.intellij.psi.util.ClassUtil;
-import com.intellij.refactoring.ui.ClassNameReferenceEditor;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
 import java.util.function.Supplier;
 
 public class BuilderInterfaceValidator implements Supplier<ValidationInfo> {
@@ -31,34 +32,12 @@ public class BuilderInterfaceValidator implements Supplier<ValidationInfo> {
             return validationError("Builder interface cannot be found");
         }
 
-        if (!psiClass.isInterface()) {
-            return validationError("Builder interface should be an interface");
-        }
-
-        String buildMethodViolation = validateHasValidBuildMethod(psiClass);
-        if (buildMethodViolation != null) {
-            return validationError(buildMethodViolation);
+        boolean isValidBuilderInterface = PsiBuilderFinder.isValidBuilderInterface(psiClass);
+        if (!isValidBuilderInterface) {
+            return validationError("Selected class is not valid Builder interface");
         }
 
         return validationSuccess();
-    }
-
-    private static String validateHasValidBuildMethod(PsiClass psiClass) {
-        PsiMethod[] declaredMethods = Arrays.stream(psiClass.getMethods())
-                .filter(m -> m.getName().equals("build") || m.getModifierList().hasExplicitModifier(PsiModifier.DEFAULT))
-                .toArray(PsiMethod[]::new);
-
-        if (declaredMethods.length != 1) {
-            return "Builder interface should have exactly one public method";
-        }
-
-        PsiMethod possibleBuildMethod = declaredMethods[0];
-        PsiType returnType = possibleBuildMethod.getReturnType();
-        if (returnType instanceof PsiPrimitiveType && ((PsiPrimitiveType) returnType).getName().equals("void")) {
-            return "build() method should have a return type";
-        }
-
-        return null;
     }
 
     private @NotNull ValidationInfo validationError(String message) {

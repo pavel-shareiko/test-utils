@@ -18,7 +18,7 @@ import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.search.ProjectScope;
-import com.intellij.refactoring.ui.ClassNameReferenceEditor;
+import by.shareiko.testutils.ui.components.ClassNameReferenceEditor;
 import com.intellij.refactoring.ui.PackageNameReferenceEditorCombo;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.JBSplitter;
@@ -71,9 +71,7 @@ public class GenerateBuilderDialog extends DialogWrapper {
         this.fieldOptionsPanel = new FieldOptionsPanel(fieldSelectionPanel, project);
         this.lombokDecoratorsPanel = new LombokDecoratorsPanel(sourceClass);
 
-        // TODO: use RecentsManager for this
-        this.builderInterfaceField = new ClassNameReferenceEditor(project, null,
-                JavaProjectRootsUtil.getScopeWithoutGeneratedSources(ProjectScope.getProjectScope(project), project));
+        this.builderInterfaceField = new ClassNameReferenceEditor(project, JavaProjectRootsUtil.getScopeWithoutGeneratedSources(ProjectScope.getProjectScope(project), project));
         this.sourceRootSelector = new SourceRootSelector(project);
 
         setTitle(DEFAULT_DIALOG_TITLE);
