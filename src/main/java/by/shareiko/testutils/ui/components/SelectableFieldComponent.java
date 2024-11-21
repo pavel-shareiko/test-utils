@@ -109,9 +109,8 @@ public class SelectableFieldComponent extends JBPanel<SelectableFieldComponent> 
             return true;
         }
 
-        // Check if the type belongs to the java.lang package (standard library type)
         String typeQualifiedName = type.getCanonicalText();
-        return typeQualifiedName.startsWith("java.lang.");
+        return typeQualifiedName.startsWith("java.");
     }
 
     public PsiField getPsiField() {

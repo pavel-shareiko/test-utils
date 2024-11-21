@@ -1,6 +1,7 @@
 package by.shareiko.testutils.ui.dialog;
 
 import by.shareiko.testutils.properties.TestDataBuilderConfiguration;
+import by.shareiko.testutils.ui.components.ClassNameReferenceEditor;
 import by.shareiko.testutils.ui.components.panel.FieldOptionsPanel;
 import by.shareiko.testutils.ui.components.panel.FieldSelectionPanel;
 import by.shareiko.testutils.ui.components.panel.LombokDecoratorsPanel;
@@ -18,7 +19,6 @@ import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.search.ProjectScope;
-import by.shareiko.testutils.ui.components.ClassNameReferenceEditor;
 import com.intellij.refactoring.ui.PackageNameReferenceEditorCombo;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.JBSplitter;

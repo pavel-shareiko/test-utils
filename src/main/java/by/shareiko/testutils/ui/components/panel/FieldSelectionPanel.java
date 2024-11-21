@@ -4,7 +4,7 @@ import by.shareiko.testutils.ui.components.SelectableFieldComponent;
 import by.shareiko.testutils.utils.PsiFieldUtils;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiField;
-import com.intellij.ui.components.JBPanel;
+import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
 
 import javax.swing.*;
@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
-public class FieldSelectionPanel extends JBPanel<FieldSelectionPanel> {
+public class FieldSelectionPanel extends JBScrollPane {
     private final PsiField[] psiFields;
     private final Map<PsiField, SelectableFieldComponent> fieldList;
     private PsiField activeField;
@@ -22,16 +22,19 @@ public class FieldSelectionPanel extends JBPanel<FieldSelectionPanel> {
     public FieldSelectionPanel(PsiClass sourceClass) {
         psiFields = PsiFieldUtils.getWritableFields(sourceClass);
         fieldList = new LinkedHashMap<>();
-
-        setLayout(new GridBagLayout());
     }
 
     public void init() {
-        createFieldComponents();
+        JPanel mainPanel = createMainPanel();
         registerDefaultSelectionListener();
+
+        super.setViewportView(mainPanel);
+        super.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        super.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
     }
 
-    private void createFieldComponents() {
+    private JPanel createMainPanel() {
+        var panel = new JPanel(new GridBagLayout());
         var gbConstraints = new GridBagConstraints();
         gbConstraints.fill = GridBagConstraints.HORIZONTAL;
         gbConstraints.anchor = GridBagConstraints.NORTHWEST;
@@ -44,18 +47,19 @@ public class FieldSelectionPanel extends JBPanel<FieldSelectionPanel> {
         for (var psiField : psiFields) {
             var fieldComponent = new SelectableFieldComponent(psiField);
             this.fieldList.put(psiField, fieldComponent);
-            this.add(fieldComponent, gbConstraints);
+            panel.add(fieldComponent, gbConstraints);
             gbConstraints.gridy++;
         }
 
-        addFillerComponent(gbConstraints);
+        addFillerComponent(gbConstraints, panel);
+        return panel;
     }
 
-    private void addFillerComponent(GridBagConstraints gbConstraints) {
+    private void addFillerComponent(GridBagConstraints gbConstraints, JPanel panel) {
         gbConstraints.weighty = 1;
         JPanel filler = new JPanel();
         filler.setPreferredSize(new Dimension(0, 0));
-        add(filler, gbConstraints);
+        panel.add(filler, gbConstraints);
     }
 
     private void registerDefaultSelectionListener() {
